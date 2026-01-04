@@ -1,0 +1,100 @@
+-----------------------------------------------------------------------------
+AWS => Rent based system -> rent server according to region and charge $
+
+Cloud -> public/private
+public cloud -> data center's
+
+AWS Working model : PAYG (pay as you go)
+
+Ques: Wht are AZ(availability zones) and regions?
+region : a place where is 3 or more than 3 AZ
+AZ : in a region servers are able to serves data from [data center's] 
+
+NOTED : every instance and service price and stuff are different according to the region
+
+CapEx : capital expenses => like - buy a laptop - 30K
+OpEx : operational expenses => like - electricity cost to run the laptop
+
+Get Credits : AWS Customer Council / AWS Community Builder
+-----------------------------------------------------------------------------
+
+# IAAS (VS) PAAS (VS) SAAS
+AWS provide all of these IAAS, PAAS, SAAS
+IAAS -> infrastructure as a service = manage by ourself (EC2, RDS)
+PAAS -> platform as a service = no need of manage (lambda, ECS)
+SAAS -> software as a service = you are an end-user (AWS price calculator)
+
+
+AWS works through -> console,cli,sdk
+Account -> Root -> Admin -> Acess All Services
+# Manage account in proper order must know about (IAM)  
+IAM -> Identity Acess Management
+
+1. Identity Provider : If i want to give the access of my aws account to third-party applications like gitlab, github, orr different person's 
+example - cloudflare -: we can add a provider inside identity providers in IAM
+
+2. Policies : User have restinstions to access services like EC2, S3 (read-write/read-only/write-only), all these defines under policies
+
+3. Users : we can create user's and assign them policies to access the services under some limitations (which are allready mentioned inside the polices)
+
+4. User Groups : we also have the access to create groups and assign them policies and every preson which are present inside that group get automatically access of all those policies (which are available inside the group)
+
+NOTED : create a group -> assigned the policies -> add users inside the group -> user get access polices automatically which are assign to the group  
+
+5. Roles : (service role) we define role to our instance (EC2) to do CRUD operations with RDS.
+example : 
+user -> developer
+developer -> have access to create EC2 instance
+developer -> don't have access of RDS
+we define role to one service to interact with other service (EC2 interactes with RDS), rather than giving access to developer of our RDS. developer perform operations with RDS through EC2
+
+Task : perform with CLI (neccessary)
+create EC2 instance
+create IAM user
+create S3 bucket
+connect user to aws account access + assigned IAM role + access S3 bucket
+
+NOTED : S3 stores any type of Data in object format
+
+Solution : 
+-- first :
+> create EC2 instance (launch instance)
+> set a name
+> select OS image
+> select instance type (t3.micro, t2.micro)
+> create login pair (important for CLI access)
+> inside the network settings -> allow SSH traffic (important for access EC2 from cli through terminal)
+> configure storage
+> click launch instance
+
+-- second : 
+> create a IAM user
+> assign policies to them (EC2, S3)
+
+-- third : 
+> create services like - S3 bucket
+> select general purpose (set name : must be unique)
+> select object ownership (ACLs disabled (recommended))
+> tick mark : Block Public Access settings for this bucket
+> add other stuff (optional)
+> create bucket
+
+-- fourth : 
+> create token to access AWS through terminal
+> inside the IAM > users > select user > security credentials > create access key > download it 
+ 
+-- fiveth : 
+> connect EC2 instance to terminal with SSH 
+> hide you keys to publicly viewable : chmod 400 "<file_name>.pem"
+> Connect to your instance using its Public DNS
+> install AWSCLIV2 (linux) commands :  
+
+--- command start --- 
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+--- command end --- 
+
+> aws configure
+> add acess token 
+> add secret token 
