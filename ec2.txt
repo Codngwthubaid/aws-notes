@@ -1,0 +1,140 @@
+-----------------------------------------------------------------------------
+AWS EC2
+User Data Scripts (EC2)
+Lanuch Templates
+Auto Scaling 
+Load Balancing
+WAF-ACL
+
+SSH - secure shell protocol
+port of SSH traffic - 22
+port of HTTPS traffic - 443
+port of HTTP traffic - 80
+
+# while config the storage while creating EC2
+storage - elastic block storage
+
+# on demand instances V/S spot instances
+- on demand : fixed-price and good compute power for critical and consistent workloads and avaiable everytime 
+- spot : bid's where set and less price and not guaranteed of avaiability of every time  
+
+# process of creating an instance : 
+1. choose machine (ubuntu)
+2. create key 
+3. choose instance type 
+4. choose network type
+5. choose storage type
+
+Note : Create a template of all the entire process, so we skips all the process again & again, simplly hit the template to create an instance.
+
+-----------------------------------------------
+work process of access created template: 
+go to launch template >
+select template > 
+click on action > 
+launch instance from template
+-----------------------------------------------
+
+Wht we need of modifing the template : we create an EC2 instance and then we create a template of that for short-cut, this will only give me the EC2 creation stuff not the inner stuff which i set orr install in that template like install nginx, etc
+
+-----------------------------------------------
+work process of modifing the template:
+go to launch template >
+select template > 
+click on action > 
+Modify template (new version) > 
+provide template version description (prev > v1, current > v2) >
+click advanced details >
+at the bottom find (User data - optional) > 
+write shell script : for updating, installing, creating, etc (which we want to be present in you EC2 instance when you create that)
+
+sheel script : 
+#!/bin/bash
+
+# for installation stuff
+sudo apt-get update -y
+sudo apt-get install nginx -y
+
+# create file and set some data into that file
+echo "mohammad ubaid ansari" | sudo tee /var/www/html/index.html
+
+# restarting nginx server
+sudo systemctl restart nginx
+-----------------------------------------------
+
+-----------------------------------------------
+AUTO SCALING : Auto Scaling contains 2 things : load Balancer and auto scaling groups
+Auto scaling means to scale EC2 instances automatically according to the traffic which comes on our server 
+Load Balancer works to distribute the user traffic request to different instances 
+Auto Scaling Groups is the group in which we have all our EC2 instances (server) with some command entity.
+
+Load Balancer is also 2 types : Application load balancer and Network load balancer 
+
+core work process of initializing auto scaling groups:
+> choose launch template
+> choose instance launch operations
+> integarate with other services
+> config group size and scaling
+> add notifications (SNS used)
+> add tags
+> review process
+
+
+deep down in initializing auto scaling groups:
+
+// Choose launch template :
+> Inside EC2 > click auto scaling > create auto scaling group
+> set name > choose template > choose version of the template 
+
+// Choose instance launch options : 
+> choose AZ and subnets
+
+// Integrate with other services :
+> choose "attach new load balancer"
+> choose "load balancer type  : Application / Network"
+> choose "load balancer scheme : internal-facing" means -> it provide a link to us by which we can access the application and this is come from load balancer (high traffic no issue == new instance create and new link automatically come)
+> in Listeners and routing > create a new target group 
+> allow health checks "recommended"
+
+// Configure group size and scaling : 
+> set "desired capacity : means how many instances you want to run everytime no matter traffic is present or not" (min : 1)  
+> set scaling "max desired capacity" (num of AZ you select at stage 2)
+> set "target tracking scaling policy" in Automatic scaling
+> set "Average CPU utilization" in Metric type
+> set "target value" (recommended between 20-30%) means when the CPU usage is more than 30% than auto scaling start and a new instance come to handle traffic
+> set "Instance warmup" means how much time an instance take to come (recommended : 300sec)
+
+
+// Add notifications : leave for now (advanced thing : use of SNS)
+
+// Add tags : like key-value pair and tags help to find the auto scaling groups across AWS.
+
+// Review
+
+----------------------------------------------
+Advanced => (WAF) Web Application Firewall : It is firewall which shows before you site launch and its work to detect bot and DDos attacks and many more. WAF have some set of rules which was assigned through ACL (application control list).
+
+> select WAF > click "create protection pack (web ACL)"
+> select app category > app focus
+> select reasources > "add regional reasources"
+> select you load balancer "ubaid-auto-scaling-alb-1"
+> choose initial protection (go with "recommended" one)
+> set name of ACL and desc (optional)
+-----------------------------------------------
+
+NOTE : how to access the link which is created by "internal-facing" at stage 3.
+> select load balancer > DNS name == link
+
+NOTE : terminate all the instances but again one instance created automatically because while creating auto scaling group - we mentioned we need atleast 1 instance every time, thats why automatically an instance will created -> to STOP this we need to delete our auto scaling group 
+
+
+## how thinks works (in short) : 
+1. users / bots
+2. requesting for accessing application
+3. go after passing WAF-ACL 
+4. load balancer distribute the load and serves request on distributed instances.
+
+
+
+Task: DONE
+Create an Ec2 instance and then install nginx and then create a simple html file inside them and then renders it on the public server on the IP address .

@@ -1,3 +1,6 @@
+### Introduction to AWS and CLoud Essentials
+
+Day - 1 
 -----------------------------------------------------------------------------
 AWS => Rent based system -> rent server according to region and charge $
 
@@ -16,7 +19,7 @@ CapEx : capital expenses => like - buy a laptop - 30K
 OpEx : operational expenses => like - electricity cost to run the laptop
 
 Get Credits : AWS Customer Council / AWS Community Builder
------------------------------------------------------------------------------
+
 
 # IAAS (VS) PAAS (VS) SAAS
 AWS provide all of these IAAS, PAAS, SAAS
@@ -98,3 +101,6 @@ sudo ./aws/install
 > aws configure
 > add acess token 
 > add secret token 
+-----------------------------------------------------------------------------
+
+
