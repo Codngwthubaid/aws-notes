@@ -1,0 +1,156 @@
+-----------------------------------------------------------------------------------
+Q1. Container VS Objects
+Container :: is a bucket
+Object :: file which store inside the container 
+
+-----------------------------------------------------------------------------------
+S3 BUCKETS (STORAGE)
+-----------------------------------------------------------------------------------
+process of creating a S3 bucket :
+> In S3 : bucket names are allways unique
+> Copy settings(configurations) from existing bucket
+
+> Object Ownership : ACLs disabled [ACL => access control list](when we dont need to gave access ou bucket to anyone else)
+
+> Block Public Access settings for this bucket [every bucket have 2 access : public and private] => [recommended : to block the public accesss for security reasons]
+
+> Bucket Versioning : versioning for storing multiple varients of a single object in same bucket 
+
+> Tags : a type of label (important for marking imp* buckets and also help for fniding the buckets accross AWS)
+
+> Default Encryption : Server-side encryption with Amazon S3 managed keys (SSE-S3) [allways enable for encryption-decryption of data]
+
+> Advanced Setting > Object Lock : to enable object lock we cannot able to insert and retrive data at the same time because to prevent objects from being deleted or overwritten
+
+> Create bucket
+
+> Delete bucket : bucket must be empty at the time of bucket deletion process, if the bucket contain any object (entity) then it will refuse to delete
+-----------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------
+Task : create a bucket which host a static website
+
+> follow normal process of creating a bucket
+> inside your bucket > goto properties > at the bottom enable static host > provide 2 files [index.html and error.html] > write rules / conditions like ->
+[home === index.html]
+[
+    {
+        "Condition": {
+            "KeyPrefixEquals": "home"
+        },
+        "Redirect": {
+            "ReplaceKeyPrefixWith": "index.html"
+        }
+    }
+]
+> after this, it will provide us a link by which we can't access our site [error : 403]
+> error be like -
+403 Forbidden
+Code: AccessDenied
+Message: Access Denied
+RequestId: GQ9EQ7W8AZMJ6N3W
+HostId: B9FS6AinftCnATk+dYn95jgmgBrkytNFr6B7RXpzc/E2u/jNOx+64lpjTMh9pugdvTOJLqIqwMU=
+An Error Occurred While Attempting to Retrieve a Custom Error Document
+Code: AccessDenied
+Message: Access Denied
+
+> untill or unless we set the permissions of the bucket 
+> inside the permissions tab -> goto bucket policy -> edit policy -> example policy -> in topics section find what type of permissions you want to assigned, click on that and find for json code which you want to set in the permissions
+json be like :
+{
+    "Version" : "2012-10-17",
+    "Statement" : [
+        {
+            "Sid" : "PublicReadGetObject",
+            "Effect" : "Allow",
+            "Principal" : "*",
+            "Action" : "s3:GetObject",
+            "Resource" : "arn:aws:s3:::ubaid-host-static-web/*"
+        }
+    ]
+}
+
+> but, still we get an error be like - 
+404 Not Found
+Code: NoSuchKey
+Message: The specified key does not exist.
+Key: index.html
+RequestId: 0FP191ZNHVCJ7V9D
+HostId: 9qEby+toKKLjt5H4c/5lZPo42Jm1Rm1IHjEctzpDN/okMQsAiTFODChpTx6lvX7w07au4MB0IVM=
+An Error Occurred While Attempting to Retrieve a Custom Error Document
+Code: NoSuchKey
+Message: The specified key does not exist.
+Key: error.html
+
+> this error was come because till now we dont have the index and error.html files in our S3 bucket, once we add both of them, we can simplly access our webpage.
+-----------------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------------
+IAM (Identity and Access Management)
+-----------------------------------------------------------------------------------
+Important points : 
+1. Roles
+2. Users
+3. Group Users
+4. Identity Providers
+5. Policies
+
+
+-----------------------------------------------------------------------------------
+AWS CLI 
+-----------------------------------------------------------------------------------
+1. installation of AWS CLI in your instance (EC2)
+2. installation of Unzip package to Unzip the awscliv2
+3. follow this link for installation [link :]
+4. first command after installation process : aws Configure
+5. important commands of aws cli ->
+cp: Copy objects
+ls: List buckets or objects
+mb: Make a bucket
+mv: Move objects
+rb: Remove a bucket
+rm: Remove objects
+sync: Synchronize directories and buckets
+presign: Generate a pre-signed URL for an S3 object 
+
+
+-----------------------------------------------------------------------------------
+AWS CLI (common commands)
+-----------------------------------------------------------------------------------
+
+> cp (Copy objects)
+Copies a file from your local machine to your bucket, or between buckets.
+Upload: aws s3 cp my-new-style.css s3://ubaid-host-static-web/
+Download: aws s3 cp s3://ubaid-host-static-web/index.html ./local-backup.html
+
+> ls (List buckets or objects)
+Displays the contents of a bucket or a list of all your buckets.
+List Bucket Objects: aws s3 ls s3://ubaid-host-static-web/
+List All Buckets: aws s3 ls
+
+> mb (Make a bucket)
+Creates a new, uniquely named bucket in a specified region.
+Example: aws s3 mb s3://ubaid-backup-2026 --region us-east-1
+
+> mv (Move objects)
+Moves an object from one location to another, deleting it from the source after a successful copy.
+Example: aws s3 mv s3://ubaid-host-static-web/error.html s3://ubaid-host-static-web/old-error.html
+
+> rb (Remove a bucket)
+Deletes an empty bucket. Use --force to delete a bucket and all its contents.
+Remove Empty: aws s3 rb s3://ubaid-old-bucket
+Remove with Contents: aws s3 rb s3://ubaid-old-bucket --force
+
+> rm (Remove objects)
+Deletes a specific object from a bucket.
+Single File: aws s3 rm s3://ubaid-host-static-web/error.html
+All Files (Recursive): aws s3 rm s3://ubaid-host-static-web/ --recursive
+
+> sync (Synchronize directories and buckets)
+Updates the destination with only new or changed files from the source, making it ideal for website updates.
+Example: aws s3 sync ./my-web-folder s3://ubaid-host-static-web/
+
+> presign (Generate a pre-signed URL)
+Creates a temporary URL that allows someone to download a private object without needing AWS credentials.
+Example (valid for 1 hour): aws s3 presign s3://ubaid-host-static-web/index.html --expires-in 3600 
