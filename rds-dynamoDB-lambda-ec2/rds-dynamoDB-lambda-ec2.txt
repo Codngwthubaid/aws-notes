@@ -1,0 +1,155 @@
+-----------------------------------------------------------------------------------
+RDS + DynamoDB [create, manage]
+RDS + DynamoDB [insertion, deletion]
+Connecting [RDS with EC2, Lambda, DynamoDB]
+Attaching policies, roles, using AWSCLI
+-----------------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------------
+RDS (Relational Database Service) - SQL DB [need schema]
+-----------------------------------------------------------------------------------
+
+###################### process of creation of RDS ######################
+
+> choose between Full configuration [fc] / Easy configuration [ec]
+fc > you want to configure all the steps by yourelf
+> choose Engine options [Db type -> MYSQL, MariaDB, Oracle, etc] 
+> choose Edition [for MYSQL -> MySQL Community]
+> Show only versions that support the Multi-AZ DB cluster [important (but not used in learning) : but only use in production and also costly , Multi-AZ DB cluster means -> organization data is storage at multiple AZ, if anyone crash then the data will shift automatically by AWS to other AZ]
+> choose Availability and durability -> Single-AZ DB instance deployment (1 instance)
+> Settings -> [DB instance identifier] -> set name of DB 
+> Credentials Settings -> [Master username] -> username of DB > [set master password] -> password of DB 
+> Instance configuration -> select DB instance 
+> Storage -> select storage [20GB]
+> Connectivity 
+-> Compute resource -> [Connect with EC2]
+-> Network type -> IPv4
+-> Virtual private cloud (VPC) [after creating DB, we cannot have the access to change or update the VPC]
+> Tags - optional
+> Database authentication = ways to access DB like [only password, password + IAM DB auth, password + Kerberos auth ] 
+> create Database
+
+###################### completion of creation of RDS ######################
+
+###################### process of Connecting RDS with EC2 ######################
+
+> EC2 -> client || RDS -> server [want to connect ec2 to rds through mysql]
+> 1 : install mysql-client in ec2
+> 2 : select rds -> Connectivity & security -> Connected compute resources -> Set up EC2 connection
+> 3 : iam -> roles -> aws services -> select ec2 [gives access of rds and cloudwatch] -> set name of role[IAM]
+> 4 : select ec2 -> actions -> security -> modify IAM role -> select the created IAM role
+> 5 : terminal -> insert accessing command - > [
+    mysql -u <user_name> -h <endpoint> -P <port> -p <password>
+    ORR
+    mysql -u <user_name> -h <endpoint> -P <port> -p
+    Enter password : <password>
+    ]
+
+###################### completion of Connecting RDS with EC2 ######################
+
+
+> mysql running inside the EC2 and rds [DB] needs a schema [rows, cols] which we want to create inside the mysql environment [terminal]
+COMMANDS : 
+> create a table -> CREATE TABLE <table_name> (col_name <data_type>, col_name <data_type>)
+> insert values -> insert into <table_name> (col_name, col_name) values (value, value)
+> delete from <table_name> where <col_name> = <value> (any condition)
+
+### NOTE : All this inseration and deletion is done inside the RDS throug EC2
+
+
+-----------------------------------------------------------------------------------
+DynamoDB - NoSQL DB
+-----------------------------------------------------------------------------------
+In DynamoDB -> we dont need a proper schema but only need a specific identifier [key], and we can able to do all the operations with the help of that key like inseration & deletion, more
+
+And with DynamoDB we do operations of inseration and delete through lambda [which is serverless]
+NO need of EC2 instance 
+NO need of writing queries
+
+> in lambda, we have functions, we only want to write those functions and AWS excute those functions on their own servers (which we don't need to know) like lambda is serverless then no server cost [lambda is also good for cost perpective]
+
+> in DynamoDB, we need to set the name of the table and set the partition key [important : typeOf string,int,binary]
+> deploy it > test it
+> each test is an event > inside the test set the data into JSON format like - {"message":"hello world"}
+
+
+###################### Inseration data into DynamoDB through lambda ######################
+
+> for inseration process we need a python lib : "boto3" (a type of connection between python and lambda)
+> Boto3 doc : client connects server / resource is a server in their own
+> after doing this when we test the lambda function it will throw an error : AccessDeniedException (lambda dont have access of DynamoDB)
+> for getting access of DynamoDB (create a role then assigned it to lambda) => lambda function => configuration => permission => role Edition
+ 
+------------------------ inseration code start ------------------------
+import json
+import boto3
+
+def lambda_handler(event, context):
+    print(event.get("message", "No message provided"))
+
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('Ubaid_Table')
+
+    item_to_insert = event 
+    item_to_insert = {
+        'id': event['id'],          
+        'name': event['name'],
+        'age': event['age']
+    }
+
+    try:
+    table.put_item(Item=item_to_insert)
+    print("Item inserted successfully")
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Item inserted successfully')        
+    }
+
+    except Exception as e:
+    print(f"Error inserting item: {e}")
+
+    return {
+        'statusCode': 500,
+        'body': json.dumps('Error inserting item')
+    }
+
+
+------------------------ inseration code end ------------------------
+
+
+------------------------ deletion code start ------------------------
+
+import json
+import boto3
+
+def lambda_handler(event, context):
+    print(event.get("message", "No message provided"))
+
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('Ubaid_Table')
+
+    try:
+        table.delete_item(
+            Key={
+                'id': '1'   # Must match partition key
+            }
+        )
+
+        print("Item deleted successfully")
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Item deleted successfully')
+        }
+
+    except Exception as e:
+        print(f"Error deleting item: {e}")
+
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Error deleting item')
+        }
+
+------------------------ deletion code end ------------------------
