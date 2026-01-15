@@ -138,3 +138,5 @@ NOTE : terminate all the instances but again one instance created automatically 
 
 Task: DONE
 Create an Ec2 instance and then install nginx and then create a simple html file inside them and then renders it on the public server on the IP address .
+
+

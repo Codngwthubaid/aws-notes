@@ -1,0 +1,177 @@
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+VPC (Virtual Private Cloud) -  Isolated Cloud Resource
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------
+### Understand the flow daigram of VPC : (Network Daigram)
+> inside AWS > regions present > create VPC (a type of private network : public and private) > AZ > inside AZ > create public subnet > create private subnet 
+
+Ques : How user access the public subnet ?
+user > create internet gateway > create route table > public subnet
+
+> the instances which are avaibale in public subnet can be accessed by internet gateway through route table
+> the instances present inside the public subnet can access the instances present inside the private subnet (DB) though NAT gateway
+NAT gateway : (Network Address Translation Gateway)
+-----------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+Process of creating a VPC
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+-------------------- VPC creating starting --------------------
+
+> By default aws creates a vpc for every account with no name i.e called as default VPC
+> when we create VPC -> it shows us 2 options (VPC only and VPC  with more) -> in (VPC more) all the stuffl like subnets, ruotes, network, etc are allready build. while, in VPC only we want to create by it own
+> MAIN AIM : VPC only
+1. set name 
+2. select IPv4 CIDR block
+important (CIDR) : CIDR (Classless Inter-Domain Routing) is an internet standard for allocating IP addresses and routing, replacing older class-based systems (A, B, C) to use addresses more efficiently and reduce routing table bloat. It uses a slash notation (e.g., 192.168.1.0/24) where the number after the slash indicates how many bits define the network portion, allowing flexible subnetting and supernetting for better IP management and network security.
+NOTE : inside the public subnet the instances which we have -> we allocating the IP addresses to them through CIDR
+3. set IPv4 CIDR 
+NOTE : goto cidr.xyc site for calculating how many resources we can able to run 
+like -> 10.0.0.0/24 -> 256 resources can be run but AWS takes 5 resources for their computation works, so in total we are able to use 251 resources
+4. IPv6 CIDR block -> (no need == IPv6 is very big, IPv4 is enough)
+5. Tenancy -> want a dedicated (source) or default -> dedicated is costly 
+6. create VPC
+
+-------------------- VPC created successfully --------------------
+
+
+-------------------- Subnet creating starting --------------------
+
+> goto subnet portion
+> on the basis of your selected region by default aws creates 3/6 subnets
+> click on create subnet
+> select vpc Id
+> set subnet setting 
+-> set subnet name
+-> select AZ
+-> IPv4 CIDR (allready set) (for whole vpc)
+-> IPv4 subnet CIDR block (for specific subnet)
+> create Subnet
+ 
+-------------------- Subnet created successfully --------------------
+
+
+NOTE : EC2 creation inside our created VPC and subnet starting, and if i try to connect my ec2 instance so it will refuse to connect because currently my subnet is "private", basically by default every subnet which we creates are private, untill or unless we provide the access of internet gateway.
+
+
+-------------------- internet gateway creating starting --------------------
+
+> goto vpc 
+> internet gateway
+> set name 
+> create igw
+
+-------------------- internet gateway created successfully --------------------
+
+
+-------------------- route table creating starting --------------------
+
+> goto vpc 
+> route table
+> set name 
+> create route table
+
+-------------------- route table created successfully --------------------
+
+
+-------------------- attaching subnet with route table --------------------
+
+> inside the route table
+> subnet associations
+> select subnet
+> save
+> select subnet, edit it and enbale auto assigned IPv4 address
+
+
+-------------------- attaching internet gateway with vpc --------------------
+
+> goto internet gateway
+> select it and edit it 
+> attach vpc
+> save
+
+
+-------------------- attaching internet gateway with vpc --------------------
+
+> goto route
+> select route table 
+> goto routes option 
+> goto edit routes
+> add route (0.0.0.0/0) access from anywhere
+> set target -> internet gateway -> select created internet gateway
+> save
+
+
+#must connected with each other
+IGW -> VPC
+RT -> Subnet
+IGW -> RT
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+Process of successfully working VPC completed
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+Task : create a vpc which have both public and private subnets, attach internet gateway to public and  NAT gateway to private subnet
+
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+VPC Peering
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+> VPC peering mainly works for connecting 2 vpc's like data sharing and other stuff works
+> now, both vpc's are present in their own networks and they both are isolated from each other
+> vpc peering creates an connection between both of them
+
+-------------------- process of peering vpcs --------------------
+
+> goto peering connections 
+> create peering connection
+> set name 
+> select local vpc (requester vpc)
+> select other vpc with account and region (accepter vpc)
+> create 
+> now this peering connection is in pending stage, accepts the request from actions in (peering connection)
+> but after creating peering connection between the vpc's it still didnot work because of "security groups"
+> create a security group 
+-> ORR
+> inside your EC2 instance 
+> select instance 
+> goto security 
+> open security groups 
+> edit inbound rules
+> add all ICMP - IPv4 (internet control message protocal)
+> save it and do it for both instances
+> add peering connection in the route table as well of both vpcs
+> select vpc > routes > edit routes > > add route > "add peering connection" > provide the IP range of selected peering connecting
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+VPC Peering completed
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+Billing and Management (Cloudwatch)
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+> if i want, if my montly bill extends more than $10, aws shoot an email to me, this was done by "Cloudwatch"
+> goto Cloudwatch 
+> goto alarms 
+> goto Billing
+> create alarm
